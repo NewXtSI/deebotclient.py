@@ -4,6 +4,10 @@ import logging
 import sys
 import time
 
+# Configure Windows event loop BEFORE importing any async libraries
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 from deebot_client.api_client import ApiClient
 from deebot_client.authentication import Authenticator, create_rest_config
 from deebot_client.commands.json.clean import Clean, CleanAction
@@ -13,7 +17,6 @@ from deebot_client.events import BatteryEvent
 from deebot_client.mqtt_client import MqttClient, create_mqtt_config
 from deebot_client.util import md5
 from deebot_client.device import Device
-from event_loop_setup import setup_windows_event_loop
 
 device_id = md5(str(time.time()))
 account_id = "leerzeichen32@googlemail.com"
@@ -95,7 +98,4 @@ async def main():
 
 
 if __name__ == '__main__':
-  # Configure event loop for Windows before creating any asyncio tasks
-  setup_windows_event_loop()
-  
   asyncio.run(main())
