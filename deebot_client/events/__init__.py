@@ -123,6 +123,14 @@ class CustomCommandEvent(Event):
 
 
 @dataclass(frozen=True)
+class TelemetryEvent(Event):
+    """Telemetry event for sensor and device metrics (onFwBuryPoint-* and similar)."""
+
+    sensor_type: str
+    data: dict[str, Any]
+
+
+@dataclass(frozen=True)
 class ErrorEvent(Event):
     """Error event representation."""
 

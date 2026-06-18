@@ -47,6 +47,7 @@ from .relocation import SetRelocationState
 from .safe_protect import GetSafeProtect, SetSafeProtect
 from .stats import GetStats, GetTotalStats
 from .sweep_mode import GetSweepMode, SetSweepMode
+from .telemetry import TelemetryCommand
 from .true_detect import GetTrueDetect, SetTrueDetect
 from .voice_assistant_state import GetVoiceAssistantState, SetVoiceAssistantState
 from .volume import GetVolume, SetVolume
@@ -134,6 +135,7 @@ __all__ = [
     "SetVolume",
     "SetWaterInfo",
     "SetWorkMode",
+    "TelemetryCommand",
 ]
 
 # fmt: off

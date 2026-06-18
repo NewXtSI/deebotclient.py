@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Callable, Coroutine
 from contextlib import suppress
 from datetime import UTC, datetime
+import json
 from typing import TYPE_CHECKING, Any, Final
 
 from deebot_client.events.network import NetworkInfoEvent
@@ -225,6 +226,11 @@ class Device:
         """
         self._set_available(available=True)
 
+        # Handle telemetry messages (onFwBuryPoint-* and similar raw sensor data)
+        if message_name.startswith("onFwBuryPoint-"):
+            self._handle_telemetry_message(message_name, message_data)
+            return
+
         try:
             _LOGGER.debug("Try to handle message %s: %s", message_name, message_data)
 
@@ -243,3 +249,53 @@ class Device:
 
         except Exception:
             _LOGGER.exception("An exception occurred during handling message")
+
+    def _handle_telemetry_message(
+        self, message_name: str, message_data: MessagePayloadType
+    ) -> None:
+        """Handle telemetry messages (onFwBuryPoint-* and similar sensor data).
+
+        :param message_name: telemetry message name (e.g., "onFwBuryPoint-bd_sysinfo")
+        :param message_data: raw message payload
+        :return: None
+        """
+        try:
+            # Import here to avoid circular imports
+            from deebot_client.commands.json.telemetry import TelemetryCommand
+            from deebot_client.events import TelemetryEvent
+
+            # Extract sensor type from message name (e.g., "bd_sysinfo" from "onFwBuryPoint-bd_sysinfo")
+            sensor_type = message_name[len("onFwBuryPoint-"):]
+
+            # Parse the payload
+            if isinstance(message_data, (bytes, bytearray)):
+                payload_str = message_data.decode("utf-8")
+            else:
+                payload_str = message_data
+
+            data = json.loads(payload_str)
+
+            # Extract body data if present (typical structure: {"body": {...}})
+            if isinstance(data, dict):
+                body_data = data.get("body", data)
+            else:
+                body_data = data
+
+            _LOGGER.debug(
+                "Received telemetry for sensor %s: %s", sensor_type, body_data
+            )
+
+            # Emit the TelemetryEvent
+            self.events.notify(TelemetryEvent(
+                sensor_type=sensor_type,
+                data=body_data
+            ))
+
+        except (json.JSONDecodeError, UnicodeDecodeError, KeyError) as e:
+            _LOGGER.warning(
+                "Failed to handle telemetry message %s: %s", message_name, e
+            )
+        except Exception:
+            _LOGGER.exception(
+                "An exception occurred during handling telemetry message %s", message_name
+            )
