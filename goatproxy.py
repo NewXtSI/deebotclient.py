@@ -608,4 +608,8 @@ async def run_proxy() -> None:
 
 
 if __name__ == "__main__":
+    # On Windows, use ProactorEventLoop for proper socket handling (required for MQTT)
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    
     asyncio.run(run_proxy())
