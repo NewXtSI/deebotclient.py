@@ -5,6 +5,11 @@ import sys
 if sys.platform == "win32":
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    # Clear any existing event loop to force creation with new policy
+    try:
+        asyncio.set_event_loop(None)
+    except RuntimeError:
+        pass
 
 import asyncio
 import contextlib
