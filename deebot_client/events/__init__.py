@@ -232,6 +232,8 @@ class VolumeEvent(Event):
 
     volume: int
     maximum: int | None
+    fall_volume: int | None = None
+    search_volume: int | None = None
 
 
 @dataclass(frozen=True)
