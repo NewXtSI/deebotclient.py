@@ -4,12 +4,11 @@ from __future__ import annotations
 import sys
 if sys.platform == "win32":
     import asyncio
+    import asyncio.windows_events
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-    # Clear any existing event loop to force creation with new policy
-    try:
-        asyncio.set_event_loop(None)
-    except RuntimeError:
-        pass
+    # Explicitly create a new ProactorEventLoop to ensure it's used
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
 import asyncio
 import contextlib
