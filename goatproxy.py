@@ -14,6 +14,7 @@ import paho.mqtt.client as mqtt
 
 from deebot_client.api_client import ApiClient
 from deebot_client.authentication import Authenticator, create_rest_config
+from event_loop_setup import setup_windows_event_loop
 from deebot_client.commands.json.battery import GetBattery
 from deebot_client.commands.json.custom import CustomCommand
 from deebot_client.commands.json.life_span import GetLifeSpan
@@ -608,8 +609,7 @@ async def run_proxy() -> None:
 
 
 if __name__ == "__main__":
-    # On Windows, use ProactorEventLoop for proper socket handling (required for MQTT)
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    # Configure event loop for Windows before creating any asyncio tasks
+    setup_windows_event_loop()
     
     asyncio.run(run_proxy())
