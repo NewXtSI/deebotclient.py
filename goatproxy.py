@@ -398,7 +398,7 @@ async def _run_single_session(publisher: LocalPublisher, stop_event: asyncio.Eve
         unsubscribers.append(bot.events.subscribe(TelemetryEvent, on_telemetry))
 
         try:
-            battery_response = await bot.execute_command(GetBattery())
+            battery_response = await asyncio.wait_for(bot.execute_command(GetBattery()), timeout=10.0)
             data = battery_response.get("resp", {}).get("body", {}).get("data", {})
             if "value" in data:
                 publisher.publish(TOPIC_BATTERY, int(data["value"]))
@@ -408,8 +408,11 @@ async def _run_single_session(publisher: LocalPublisher, stop_event: asyncio.Eve
                 publisher.publish(TOPIC_FIRMWARE, str(fw_ver))
                 publisher.publish(TOPIC_DEVICE_FIRMWARE, str(fw_ver))
 
-            info_response = await bot.execute_command(
-                CustomCommand("getInfo", GET_INFO_SUBCOMMANDS)
+            info_response = await asyncio.wait_for(
+                bot.execute_command(
+                    CustomCommand("getInfo", GET_INFO_SUBCOMMANDS)
+                ),
+                timeout=10.0,
             )
             info_data = info_response.get("resp", {}).get("body", {}).get("data", {})
 
@@ -438,7 +441,7 @@ async def _run_single_session(publisher: LocalPublisher, stop_event: asyncio.Eve
                 logging.warning("getInfo returned no data: %s", info_response)
 
             try:
-                volume_response = await bot.execute_command(GetVolume())
+                volume_response = await asyncio.wait_for(bot.execute_command(GetVolume()), timeout=10.0)
                 volume_data = (
                     volume_response.get("resp", {})
                     .get("body", {})
@@ -475,8 +478,11 @@ async def _run_single_session(publisher: LocalPublisher, stop_event: asyncio.Eve
                 logging.exception("getVolume failed")
 
             try:
-                runtime_info_response = await bot.execute_command(
-                    CustomCommand("getInfo", RUNTIME_GET_INFO_SUBCOMMANDS)
+                runtime_info_response = await asyncio.wait_for(
+                    bot.execute_command(
+                        CustomCommand("getInfo", RUNTIME_GET_INFO_SUBCOMMANDS)
+                    ),
+                    timeout=10.0,
                 )
                 runtime_info_data = (
                     runtime_info_response.get("resp", {})
@@ -498,7 +504,10 @@ async def _run_single_session(publisher: LocalPublisher, stop_event: asyncio.Eve
                 logging.exception("runtime getInfo failed")
 
             try:
-                sleep_response = await bot.execute_command(CustomCommand("getSleep"))
+                sleep_response = await asyncio.wait_for(
+                    bot.execute_command(CustomCommand("getSleep")),
+                    timeout=10.0,
+                )
                 sleep_data = sleep_response.get("resp", {}).get("body", {}).get("data", {})
                 if isinstance(sleep_data, dict) and "enable" in sleep_data:
                     publisher.publish(TOPIC_SLEEP, int(sleep_data["enable"]))
@@ -509,8 +518,11 @@ async def _run_single_session(publisher: LocalPublisher, stop_event: asyncio.Eve
                 logging.exception("getSleep failed")
 
             try:
-                pos_response = await bot.execute_command(
-                    CustomCommand("getPos", GET_POS_SUBCOMMANDS)
+                pos_response = await asyncio.wait_for(
+                    bot.execute_command(
+                        CustomCommand("getPos", GET_POS_SUBCOMMANDS)
+                    ),
+                    timeout=10.0,
                 )
                 pos_data = pos_response.get("resp", {}).get("body", {}).get("data", {})
                 if isinstance(pos_data, dict):
@@ -523,8 +535,11 @@ async def _run_single_session(publisher: LocalPublisher, stop_event: asyncio.Eve
 
             for command_name, command_args in ADDITIONAL_OUTPUT_ONLY_COMMANDS:
                 try:
-                    response = await bot.execute_command(
-                        CustomCommand(command_name, command_args)
+                    response = await asyncio.wait_for(
+                        bot.execute_command(
+                            CustomCommand(command_name, command_args)
+                        ),
+                        timeout=10.0,
                     )
                     body = response.get("resp", {}).get("body", {})
                     code = body.get("code")
@@ -542,8 +557,11 @@ async def _run_single_session(publisher: LocalPublisher, stop_event: asyncio.Eve
 
             life_span_cap = goat_info.static.capabilities.life_span
             if life_span_cap and life_span_cap.types:
-                life_span_response = await bot.execute_command(
-                    GetLifeSpan(list(life_span_cap.types))
+                life_span_response = await asyncio.wait_for(
+                    bot.execute_command(
+                        GetLifeSpan(list(life_span_cap.types))
+                    ),
+                    timeout=10.0,
                 )
                 components = (
                     life_span_response.get("resp", {})
